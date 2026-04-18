@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ad Creative Generator – MLOps Console</title>
+
+    <style>
+        :root {
+            --bg-main: #eef2ff;
+            /* very light purple-blue background */
+            --bg-panel: #f5f7ff;
+            /* cards/panels */
+            --bg-glass: rgba(255, 255, 255, 0.7);
+
+            --primary: #7b8cff;
+            /* soft purple */
+            --accent: #60c6ff;
+            /* light blue */
+
+            --success: #34d399;
+            --danger: #f87171;
+
+            --text-main: #1f2937;
+            /* dark text */
+            --text-muted: #6b7280;
+
+            --border: rgba(0, 0, 0, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Inter, system-ui, sans-serif;
+            background: radial-gradient(circle at top, #1a1f3c, var(--bg-main));
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 24px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: auto;
+        }
+
+        /* HEADER */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* TOP METRICS */
+        .metrics-bar {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .metric {
+            background: var(--bg-glass);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px;
+            text-align: center;
+            backdrop-filter: blur(14px);
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .metric-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 6px;
+        }
+
+        /* MAIN GRID */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 340px 1fr;
+            gap: 24px;
+        }
+
+        /* LEFT PANEL */
+        .side-panel {
+            background: var(--bg-panel);
+            border-radius: 18px;
+            border: 1px solid var(--border);
+            padding: 20px;
+            height: fit-content;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            background: transparent;
+        }
+
+        .tab.active {
+            background: var(--primary);
+            color: #fff;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* GENERATOR */
+        .generator {
+            background: var(--bg-panel);
+            border-radius: 18px;
+            border: 1px solid var(--border);
+            padding: 28px;
+            position: relative;
+        }
+
+        .generator h3 {
+            margin-bottom: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        input,
+        textarea {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 10px;
+            background: #edeef2;
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            font-size: 0.95rem;
+        }
+
+        textarea {
+            resize: vertical;
+        }
+
+        /* STICKY ACTION BAR */
+        .action-bar {
+            position: sticky;
+            bottom: 0;
+            background: linear-gradient(to top, var(--bg-panel), transparent);
+            padding-top: 20px;
+            margin-top: 24px;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 700;
+            cursor: pointer;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: #000;
+            font-size: 1rem;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* RESULT */
+        .result-card {
+            margin-top: 24px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: #000;
+            border-radius: 16px;
+            padding: 24px;
+        }
+
+        .result-content {
+            background: rgba(255, 255, 255, 0.85);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 12px;
+            white-space: pre-wrap;
+        }
+
+        /* BADGES */
+        .status-badge {
+            padding: 8px 16px;
+            border-radius: 999px;
+            font-weight: 600;
+        }
+
+        .healthy {
+            background: rgba(34, 197, 94, 0.2);
+            color: var(--success);
+        }
+
+        .unhealthy {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+        }
+
+        .recent-item {
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.85rem;
+        }
+
+        pre {
+            font-size: 0.7rem;
+            max-height: 300px;
+            overflow: auto;
+            background: #0e1328;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+
+        <div class="header">
+            <div>
+                <h1>🎨 Ad Creative Generator</h1>
+                <div class="subtitle">Production MLOps Dashboard</div>
+            </div>
+            <div id="systemHealth"></div>
+        </div>
+
+        <div class="metrics-bar">
+            <div class="metric">
+                <div class="metric-value" id="totalRequests">0</div>
+                <div class="metric-label">Total Requests</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value" id="avgLatency">0ms</div>
+                <div class="metric-label">Avg Latency</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value" id="qualityScore">--</div>
+                <div class="metric-label">Quality Score</div>
+            </div>
+        </div>
+
+        <div class="main-grid">
+
+            <!-- LEFT PANEL -->
+            <div class="side-panel">
+                <div class="tabs">
+                    <div class="tab active" onclick="switchTab('metrics')">Metrics</div>
+                    <div class="tab" onclick="switchTab('health')">Health</div>
+                    <div class="tab" onclick="switchTab('logs')">Recent</div>
+                </div>
+
+                <div id="metricsTab" class="tab-content active">
+                    <div id="metricsData"></div>
+                </div>
+
+                <div id="healthTab" class="tab-content">
+                    <div id="healthData"></div>
+                </div>
+
+                <div id="logsTab" class="tab-content">
+                    <div id="recentLogs"></div>
+                </div>
+            </div>
+
+            <!-- GENERATOR -->
+            <div class="generator">
+                <h3>🚀 Generate Creative</h3>
+
+                <form id="generateForm">
+                    <div class="form-group">
+                        <label>Product Name</label>
+                        <input id="productName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Category</label>
+                        <input id="category" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea id="description" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Price</label>
+                        <input id="price" type="number" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label>Features</label>
+                        <input id="features">
+                    </div>
+
+                    <div class="action-bar">
+                        <button id="generateBtn" type="submit">Generate Ad</button>
+                    </div>
+                </form>
+
+                <div id="resultContainer"></div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:8000';
+        let recentGenerations = [];
+
+        // Check system health
+        async function checkHealth() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/health`);
+                const data = await response.json();
+
+                const badge = data.status === 'healthy'
+                    ? '<span class="status-badge healthy"><span class="status-dot"></span>System Healthy</span>'
+                    : '<span class="status-badge unhealthy"><span class="status-dot"></span>System Down</span>';
+
+                document.getElementById('systemHealth').innerHTML = badge;
+
+                // Update health tab
+                document.getElementById('healthData').innerHTML = `
+                    <div class="info-row">
+                        <span>Status:</span>
+                        <strong style="color: ${data.model_loaded ? 'var(--success)' : 'var(--danger)'}">
+                            ${data.status.toUpperCase()}
+                        </strong>
+                    </div>
+                    <div class="info-row">
+                        <span>Model Loaded:</span>
+                        <strong>${data.model_loaded ? '✅ Yes' : '❌ No'}</strong>
+                    </div>
+                    <div class="info-row">
+                        <span>Model Name:</span>
+                        <strong>${data.model_name}</strong>
+                    </div>
+                    <div class="info-row">
+                        <span>Version:</span>
+                        <strong>${data.model_version}</strong>
+                    </div>
+                `;
+            } catch (error) {
+                document.getElementById('systemHealth').innerHTML =
+                    '<span class="status-badge unhealthy"><span class="status-dot"></span>Cannot Connect</span>';
+            }
+        }
+
+        // Fetch metrics
+        async function fetchMetrics() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/metrics`);
+                const text = await response.text();
+
+                // Parse Prometheus metrics
+                const lines = text.split('\n');
+                let totalReqs = 0;
+                let quality = 0;
+
+                lines.forEach(line => {
+                    if (line.startsWith('requests_total{') && line.includes('success')) {
+                        totalReqs += parseFloat(line.split(' ')[1] || 0);
+                    }
+                    if (line.startsWith('ad_quality_score ')) {
+                        quality = parseFloat(line.split(' ')[1] || 0);
+                    }
+                });
+
+                document.getElementById('totalRequests').textContent = Math.floor(totalReqs);
+                if (quality > 0) {
+                    document.getElementById('qualityScore').textContent = quality.toFixed(2);
+                }
+
+                // Display raw metrics
+                const metricsLines = lines.filter(l => l && !l.startsWith('#')).slice(0, 15);
+                document.getElementById('metricsData').innerHTML =
+                    '<pre style="font-size: 0.75rem; color: var(--text-secondary); max-height: 400px; overflow-y: auto; background: var(--bg-darker); padding: 1rem; border-radius: 8px; border: 1px solid var(--border);">' +
+                    metricsLines.join('\n') + '</pre>';
+
+            } catch (error) {
+                console.error('Metrics fetch error:', error);
+            }
+        }
+
+        // Generate ad
+        document.getElementById('generateForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const btn = document.getElementById('generateBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<div class="loading-spinner"></div><span>Generating...</span>';
+
+            const payload = {
+                product_name: document.getElementById('productName').value,
+                category: document.getElementById('category').value,
+                description: document.getElementById('description').value
+            };
+
+            // Only add price if filled
+            const priceValue = document.getElementById('price').value;
+            if (priceValue) {
+                payload.price = parseFloat(priceValue);
+            }
+
+            // Only add features if filled
+            const featuresValue = document.getElementById('features').value;
+            if (featuresValue) {
+                payload.features = featuresValue;
+            }
+
+            const startTime = Date.now();
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/generate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+                const endTime = Date.now();
+
+                // Update latency
+                const latency = endTime - startTime;
+                document.getElementById('avgLatency').textContent = `${latency}ms`;
+
+                // Display result
+                document.getElementById('resultContainer').innerHTML = `
+                    <div class="result-card">
+                        <h4>✨ Generated Ad Creative</h4>
+                        <div class="result-content">${data.ad_creative}</div>
+                        <div class="metrics-grid">
+                            <div class="mini-metric">
+                                <div class="mini-metric-value">${(data.generation_time * 1000).toFixed(0)}ms</div>
+                                <div class="mini-metric-label">Generation Time</div>
+                            </div>
+                            <div class="mini-metric">
+                                <div class="mini-metric-value">${(data.quality_score * 100).toFixed(0)}%</div>
+                                <div class="mini-metric-label">Quality Score</div>
+                            </div>
+                            <div class="mini-metric">
+                                <div class="mini-metric-value">${data.model_version}</div>
+                                <div class="mini-metric-label">Model Version</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Add to recent logs
+                recentGenerations.unshift({
+                    product: payload.product_name,
+                    time: new Date().toLocaleTimeString(),
+                    quality: data.quality_score
+                });
+                if (recentGenerations.length > 5) recentGenerations.pop();
+                updateRecentLogs();
+
+                // Refresh metrics
+                setTimeout(fetchMetrics, 1000);
+
+            } catch (error) {
+                document.getElementById('resultContainer').innerHTML = `
+                    <div style="background: rgba(239, 68, 68, 0.2); color: var(--danger); padding: 1rem; border-radius: 12px; margin-top: 1.5rem; border: 1px solid var(--danger);">
+                        <strong>Error:</strong> ${error.message}
+                    </div>
+                `;
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<span>Generate Ad</span>';
+            }
+        });
+
+        function updateRecentLogs() {
+            const html = recentGenerations.map(gen => `
+                <div class="recent-item">
+                    <div style="display: flex; justify-content: space-between;">
+                        <strong>${gen.product}</strong>
+                        <span style="color: var(--text-secondary); font-size: 0.875rem;">${gen.time}</span>
+                    </div>
+                    <div style="margin-top: 0.5rem; color: var(--text-secondary); font-size: 0.875rem;">
+                        Quality: ${(gen.quality * 100).toFixed(0)}%
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('recentLogs').innerHTML = html || '<p style="color: var(--text-secondary);">No recent generations</p>';
+        }
+
+        function switchTab(tab) {
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById(tab + 'Tab').classList.add('active');
+        }
+
+        // Initialize
+        checkHealth();
+        fetchMetrics();
+        setInterval(checkHealth, 10000); // Every 10 seconds
+        setInterval(fetchMetrics, 5000);  // Every 5 seconds
+    </script>
+</body>
+
+</html>

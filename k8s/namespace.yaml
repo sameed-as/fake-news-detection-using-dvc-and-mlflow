@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ad-generator
+  labels:
+    name: ad-generator
+    environment: production
