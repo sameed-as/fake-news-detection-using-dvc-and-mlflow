@@ -1,0 +1,12 @@
+name: Fakenews_ML
+
+project_env: conda.yaml
+
+entry_points:
+  train:
+    parameters:
+      data_path: {type: str, default: "data/raw/WelFake_Dataset.csv"}
+      load_dvc: {type: str, default: "--load_dvc"}
+      random_state: {type: int, default: 42}
+    command: >
+      python train.py --data_path {data_path} {load_dvc} --random_state {random_state}
